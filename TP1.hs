@@ -1,3 +1,5 @@
+{-# LANGUAGE BlockArguments #-}
+
 module TP1 where
 
 data Caja = Bombilla Bool | Nada
@@ -80,19 +82,67 @@ foldCircuito fCaja fSerie fParalelo = recCircuito fCaja (\w x y z -> fSerie w x)
 -- 3 invertido
 
 invertido :: Circuito -> Circuito
-invertido = recCircuito Caja (\x y c1 c2 -> Serie y x) (\rc1 rx ry rc2 c1 x y c2 -> Paralelo c2 ry rx c1)
+invertido = recCircuito Caja (\rx ry x y -> Serie ry rx) (\rc1 rx ry rc2 c1 x y c2 -> Paralelo c2 ry rx c1)
+
+circuitolol =
+  Serie
+    cajaOn
+    (Paralelo on (Paralelo Nada cajaOff cajaOn Nada) (Paralelo on cajaOn cajaNada off) on)
+
+circuitodadovuelta =
+  Serie
+    ( Paralelo
+        on
+        (Paralelo off cajaNada cajaOn on)
+        (Paralelo Nada cajaOn cajaOff Nada)
+        on
+    )
+    cajaOn
 
 -- 4: hayCaminoIluminado
 
-hayCaminoIluminado = undefined -- TODO: COMPLETAR
+hayCaminoIluminado :: Circuito -> Bool
+hayCaminoIluminado =
+  foldCircuito
+    ( \c -> case c of
+        Bombilla True -> True
+        Bombilla False -> False
+        Nada -> False
+    )
+    (\rx ry -> rx || ry)
+    (\rw rx ry rz -> rw || rx || ry || rz)
 
 -- 5: cantidadPrendidas
 
-cantidadPrendidas = undefined -- TODO: COMPLETAR
+cantidadPrendidas :: Circuito -> Int
+cantidadPrendidas =
+  foldCircuito
+    ( \c -> case c of
+        Bombilla True -> 1
+        Bombilla False -> 0
+        Nada -> 0
+    )
+    (\rx ry -> rx + ry)
+    (\rc1 rx ry rc2 -> rc1 + rx + ry + rc2)
 
 -- 6: cajasDeCircuito
 
-cajasDeCircuito = undefined -- TODO: COMPLETAR
+cajasDeCircuito :: Circuito -> [Caja]
+cajasDeCircuito =
+  foldCircuito
+    ( \x -> [x]
+    )
+    (\w x -> w ++ x)
+    (\rc1 rx ry rc2 -> rc1 ++ rx ++ ry ++ rc2)
+
+test1 =
+  invertido
+    ( Serie
+        cajaOn
+        (Paralelo on (Paralelo Nada cajaOff cajaOn Nada) (Paralelo on cajaOn cajaNada off) on)
+    )
+
+oraculocaja = [on, off, Nada, on, on, Nada, on, off, Nada, on, on]
 
 -- 7: esCircuitoProlijo
 
