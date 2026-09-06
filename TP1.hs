@@ -168,40 +168,10 @@ circuitoEmprolijado = undefined -- ESTE EJERCICIO NO SE HACE
 
 -- 9: tienenLaMismaEstructura
 mapEstructura :: Circuito -> [String]
-mapEstructura = foldCircuito (\x -> ["Caja"]) (\x y -> ["Serie"] ++ x ++ y) (\w x y z -> ["Paralelo"] ++ x ++ y)
+mapEstructura = foldCircuito (\x -> ["Caja"]) (\x y -> x ++ y) (\w x y z -> ["Paralelo"] ++ x ++ y)
 
 tienenLaMismaEstructura :: Circuito -> Circuito -> Bool
 tienenLaMismaEstructura c1 c2 = mapEstructura c1 == mapEstructura c2
-
-c6a = Serie (Serie (Caja (Bombilla True)) (Caja Nada)) (Caja (Bombilla False))
-
-c6b = Serie (Caja (Bombilla True)) (Serie (Caja Nada) (Caja (Bombilla False)))
-
-c7a = Paralelo (Bombilla True) (Caja (Bombilla True)) (Caja Nada) (Bombilla False)
-
-c7b = Paralelo (Bombilla False) (Caja (Bombilla False)) (Caja Nada) (Bombilla True)
-
-c11a =
-  Serie
-    (Paralelo (Bombilla True) (Caja Nada) (Caja (Bombilla True)) (Bombilla False))
-    (Caja (Bombilla False))
-
-c11b =
-  Serie
-    (Paralelo (Bombilla False) (Caja Nada) (Caja (Bombilla False)) (Bombilla True))
-    (Caja (Bombilla True))
-
-c12a =
-  Serie
-    (Paralelo (Bombilla True) (Caja Nada) (Caja (Bombilla True)) (Bombilla False))
-    (Caja (Bombilla False))
-
-c12b =
-  Serie
-    (Paralelo (Bombilla True) (Caja Nada) (Caja Nada) (Bombilla False))
-    (Caja (Bombilla False))
-
-estructura1 = Serie cajaOn (Paralelo on (cajaOn) (cajaOn) off)
 
 -- 10: subCircuitoMásResistente
 
