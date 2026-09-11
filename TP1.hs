@@ -1,13 +1,15 @@
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE InstanceSigs #-}
 
 module TP1 where
 
-import Language.Haskell.TH (recC)
+-- import Language.Haskell.TH (recC)
 
 data Caja = Bombilla Bool | Nada
   deriving (Eq)
 
 instance Show Caja where
+  show :: Caja -> String
   show = showDeCaja
 
 showDeCaja :: Caja -> String
@@ -56,14 +58,19 @@ showDeCircuitoConEstructura (Paralelo cajaEntrada circuitoIzquierdo circuitoDere
     ++ "}"
     ++ (showDeCaja cajaSalida)
 
+on :: Caja
 on = Bombilla True
 
+off :: Caja
 off = Bombilla False
 
+cajaOn :: Circuito
 cajaOn = Caja on
 
+cajaOff :: Circuito
 cajaOff = Caja off
 
+cajaNada :: Circuito
 cajaNada = Caja Nada
 
 -- 1: recCircuito
@@ -86,11 +93,13 @@ foldCircuito fCaja fSerie fParalelo = recCircuito fCaja (\w x y z -> fSerie w x)
 invertido :: Circuito -> Circuito
 invertido = recCircuito Caja (\rx ry x y -> Serie ry rx) (\rc1 rx ry rc2 c1 x y c2 -> Paralelo c2 ry rx c1)
 
+circuitolol :: Circuito
 circuitolol =
   Serie
     cajaOn
     (Paralelo on (Paralelo Nada cajaOff cajaOn Nada) (Paralelo on cajaOn cajaNada off) on)
 
+circuitodadovuelta :: Circuito
 circuitodadovuelta =
   Serie
     ( Paralelo
@@ -132,11 +141,11 @@ cantidadPrendidas =
 cajasDeCircuito :: Circuito -> [Caja]
 cajasDeCircuito =
   foldCircuito
-    ( \x -> [x]
-    )
+    (\x -> [x])
     (\w x -> w ++ x)
     (\rc1 rx ry rc2 -> rc1 ++ rx ++ ry ++ rc2)
 
+test1 :: Circuito
 test1 =
   invertido
     ( Serie
@@ -144,6 +153,7 @@ test1 =
         (Paralelo on (Paralelo Nada cajaOff cajaOn Nada) (Paralelo on cajaOn cajaNada off) on)
     )
 
+oraculocaja :: [Caja]
 oraculocaja = [on, off, Nada, on, on, Nada, on, off, Nada, on, on]
 
 -- 7: esCircuitoProlijo
@@ -158,8 +168,10 @@ esCircuitoProlijo =
     )
     (\rc1 rx ry rc2 c1 x y c2 -> rx && ry)
 
+circuitoProlijo :: Circuito
 circuitoProlijo = Serie (Serie cajaOn cajaOff) cajaOn
 
+circuitoNOProlijo :: Circuito
 circuitoNOProlijo = Serie cajaOn (Serie cajaOff cajaOn)
 
 -- 8: circuitoEmprolijado
@@ -175,7 +187,15 @@ tienenLaMismaEstructura c1 c2 = mapEstructura c1 == mapEstructura c2
 
 -- 10: subCircuitoMásResistente
 
-subCircuitoMásResistente = undefined -- TODO: COMPLETAR
+resistenciaCircuito :: Circuito -> Float
+resistenciaCircuito c = 100 -- Temporario, dado
+
+subCircuitoMásResistente :: Circuito -> Circuito
+subCircuitoMásResistente =
+  foldCircuito
+    Caja
+    Serie
+    (\i a b f -> if resistenciaCircuito a > resistenciaCircuito b then a else b)
 
 {-- 11: Demostrar: alternado . alternado = id
 
