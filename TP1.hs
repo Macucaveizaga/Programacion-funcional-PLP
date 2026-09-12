@@ -85,29 +85,15 @@ recCircuito fCaja fSerie fParalelo circ = case circ of
 -- 2: foldCircuito
 
 foldCircuito :: (Caja -> b) -> (b -> b -> b) -> (b -> b -> b -> b -> b) -> Circuito -> b
-foldCircuito fCaja fSerie fParalelo = recCircuito fCaja (\w x y z -> fSerie w x) (\a b c d e f g h -> fParalelo a b c d)
+foldCircuito fCaja fSerie fParalelo = recCircuito fCaja (\rx ry _ _ -> fSerie rx ry) (\rc1 rx ry rc2 _ _ _ _ -> fParalelo rc1 rx ry rc2)
+-- recursivoCir1 recursivoCir2 cri1circ2
+--caja1 recCircIzq recCircDer caja2
 
 -- 3 invertido
 
 invertido :: Circuito -> Circuito
 invertido = recCircuito Caja (\rx ry x y -> Serie ry rx) (\rc1 rx ry rc2 c1 x y c2 -> Paralelo c2 ry rx c1)
 
-circuitolol :: Circuito
-circuitolol =
-  Serie
-    cajaOn
-    (Paralelo on (Paralelo Nada cajaOff cajaOn Nada) (Paralelo on cajaOn cajaNada off) on)
-
-circuitodadovuelta :: Circuito
-circuitodadovuelta =
-  Serie
-    ( Paralelo
-        on
-        (Paralelo off cajaNada cajaOn on)
-        (Paralelo Nada cajaOn cajaOff Nada)
-        on
-    )
-    cajaOn
 
 -- 4: hayCaminoIluminado
 
@@ -120,7 +106,7 @@ hayCaminoIluminado =
         Nada -> False
     )
     (\rx ry -> rx || ry)
-    (\rw rx ry rz -> rw || rx || ry || rz)
+    (\rc1 rx ry rc2 -> rc1 && (rx || ry ) && rc2)
 
 -- 5: cantidadPrendidas
 
@@ -144,16 +130,6 @@ cajasDeCircuito =
     (\w x -> w ++ x)
     (\rc1 rx ry rc2 -> rc1 ++ rx ++ ry ++ rc2)
 
-test1 :: Circuito
-test1 =
-  invertido
-    ( Serie
-        cajaOn
-        (Paralelo on (Paralelo Nada cajaOff cajaOn Nada) (Paralelo on cajaOn cajaNada off) on)
-    )
-
-oraculocaja :: [Caja]
-oraculocaja = [on, off, Nada, on, on, Nada, on, off, Nada, on, on]
 
 -- 7: esCircuitoProlijo
 
@@ -163,15 +139,16 @@ esCircuitoProlijo =
     (\x -> True)
     ( \rx ry x y -> case y of
         Serie a b -> False
-        _ -> True
+        _ -> True && rx
     )
     (\rc1 rx ry rc2 c1 x y c2 -> rx && ry)
 
-circuitoProlijo :: Circuito
-circuitoProlijo = Serie (Serie cajaOn cajaOff) cajaOn
 
-circuitoNOProlijo :: Circuito
-circuitoNOProlijo = Serie cajaOn (Serie cajaOff cajaOn)
+
+circuitoemplolijable :: Circuito
+circuitoemplolijable = Serie (Serie cajaOn cajaOff) (Serie cajaOff cajaOn)
+
+
 
 -- 8: circuitoEmprolijado
 
@@ -184,6 +161,10 @@ mapEstructura = foldCircuito (\x -> ["Caja"]) (\x y -> x ++ y) (\w x y z -> ["Pa
 
 tienenLaMismaEstructura :: Circuito -> Circuito -> Bool
 tienenLaMismaEstructura c1 c2 = mapEstructura c1 == mapEstructura c2
+
+
+-- 
+
 
 -- 10: subCircuitoMásResistente
 
