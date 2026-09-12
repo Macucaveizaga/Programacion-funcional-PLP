@@ -250,7 +250,7 @@ Por ambos casos podemos ver qué
 {NB}  = Bombilla booleano
 {I}   = id (Bombilla booleano)
 
--> {L1} (cajaAlternada . cajaAlternada) (Bombilla booleano) = id (Bombilla booleano)
+{L1} -> (cajaAlternada . cajaAlternada) (Bombilla booleano) = id (Bombilla booleano)
 
 ---
 
@@ -260,27 +260,27 @@ Por ambos casos donde Caja es Nada o un Bombilla, (cajaAlternada . cajaAlternada
 
        (alternado . alternado) (Caja caja)
 {C}  = alternado (alternado (Caja caja))
-{AC  = alternado (Caja (cajaAlternada caja))
-{AC  = Caja (cajaAlternada (cajaAlternada caja))
+{AC} = alternado (Caja (cajaAlternada caja))
+{AC} = Caja (cajaAlternada (cajaAlternada caja))
 {C}  = Caja ((cajaAlternada . cajaAlternada) caja)
 {L1} = Caja (id caja)
 {I}  = Caja caja
 {I}  = id (Caja caja)
 
--> {L2} (alternado . alternado) (Caja caja) = id (Caja caja)
+{L2} -> (alternado . alternado) (Caja caja) = id (Caja caja)
 
 ---
 
-       (alternado . alternado) (Serie ci cf)
-{C}  = alternado (alternado (Serie ci cf))
-{AS  = alternado (Serie (alternado ci) (alternado cf))
-{AS  = Serie (alternado (alternado ci)) (alternado (alternado cf))
-{C}  = Serie ((alternado . alternado) ci) ((alternado . alternado) cf)
-{HI} = Serie (id ci) (id cf)
-{I}  = Serie ci cf
-{I}  = id (Serie ci cf)
+           (alternado . alternado) (Serie ci cf)
+{C}      = alternado (alternado (Serie ci cf))
+{AS}     = alternado (Serie (alternado ci) (alternado cf))
+{AS}     = Serie (alternado (alternado ci)) (alternado (alternado cf))
+{C}      = Serie ((alternado . alternado) ci) ((alternado . alternado) cf)
+{L1, L2} = Serie (id ci) (id cf)
+{I}      = Serie ci cf
+{I}      = id (Serie ci cf)
 
--> {L3} (alternado . alternado) (Serie ci cf) = id (Serie ci cf)
+{L3} -> (alternado . alternado) (Serie ci cf) = id (Serie ci cf)
 
 ---
 
@@ -294,7 +294,7 @@ Por ambos casos donde Caja es Nada o un Bombilla, (cajaAlternada . cajaAlternada
 {I}      = Paralelo ce ci cd cs
 {I}      = id (Paralelo ce ci cd cs)
 
--> {L4} (alternado . alternado) (Paralelo ce ci cd cs) = id (Paralelo ce ci cd cs)
+{L4} -> (alternado . alternado) (Paralelo ce ci cd cs) = id (Paralelo ce ci cd cs)
 
 ---
 
