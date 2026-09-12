@@ -3,8 +3,6 @@
 
 module TP1 where
 
--- import Language.Haskell.TH (recC)
-
 data Caja = Bombilla Bool | Nada
   deriving (Eq)
 
@@ -24,6 +22,7 @@ data Circuito
   deriving (Eq)
 
 instance Show Circuito where
+  show :: Circuito -> String
   show = showDeCircuito
 
 showDeCircuito :: Circuito -> String
@@ -176,6 +175,7 @@ circuitoNOProlijo = Serie cajaOn (Serie cajaOff cajaOn)
 
 -- 8: circuitoEmprolijado
 
+circuitoEmprolijado :: a
 circuitoEmprolijado = undefined -- ESTE EJERCICIO NO SE HACE
 
 -- 9: tienenLaMismaEstructura
@@ -188,22 +188,21 @@ tienenLaMismaEstructura c1 c2 = mapEstructura c1 == mapEstructura c2
 -- 10: subCircuitoMásResistente
 
 resistenciaCircuito :: Circuito -> Float
-resistenciaCircuito c = 100 -- Temporario, dado
+resistenciaCircuito _ = 100 -- Temporario, dado
 
 subCircuitoMásResistente :: Circuito -> Circuito
 subCircuitoMásResistente =
   foldCircuito
     Caja
     Serie
-    (\i a b f -> if resistenciaCircuito a > resistenciaCircuito b then a else b)
+    (\_ a b _ -> if resistenciaCircuito a > resistenciaCircuito b then a else b)
 
 {-- 11: Demostrar: alternado . alternado = id
 
 alternado :: Circuito -> Circuito
 {AC} alternado (Caja caja) = Caja (cajaAlternada caja)
 {AS} alternado (Serie ci cf) = Serie (alternado ci) (alternado cf)
-{AP} alternado (Paralelo ce ci cd cs) =
-       Paralelo (cajaAlternada ce) (alternado ci) (alternado cd) (cajaAlternada cs)
+{AP} alternado (Paralelo ce ci cd cs) = Paralelo (cajaAlternada ce) (alternado ci) (alternado cd) (cajaAlternada cs)
 
 cajaAlternada :: Caja -> Caja
 {CAN} cajaAlternada Nada = Nada
@@ -219,6 +218,86 @@ not :: Bool -> Bool
 {NT} not True = False
 {NF} not False = True
 
--- TODO: COMPLETAR
+---
+
+       not (not True)
+{NT} = not False
+{NF} = True
+
+       not (not False)
+{NT} = not True
+{NF} = False
+
+Por ambos casos podemos ver qué
+-> {NB} not (not booleano) = booleano
+
+---
+
+        (cajaAlternada . cajaAlternada) Nada
+{C}   = cajaAlternada (cajaAlternada Nada)
+{CAN} = cajaAlternada Nada
+{CAN} = Nada
+{I}   = id Nada
+
+-> {N} (cajaAlternada . cajaAlternada) Nada = id Nada
+
+---
+
+        (cajaAlternada . cajaAlternada) (Bombilla booleano)
+{C}   = cajaAlternada (cajaAlternada (Bombilla booleano))
+{CAB} = cajaAlternada (Bombilla (not booleano))
+{CAB} = Bombilla (not (not booleano))
+{NB}  = Bombilla booleano
+{I}   = id (Bombilla booleano)
+
+-> {L1} (cajaAlternada . cajaAlternada) (Bombilla booleano) = id (Bombilla booleano)
+
+---
+
+Por ambos casos donde Caja es Nada o un Bombilla, (cajaAlternada . cajaAlternada) = id
+
+---
+
+       (alternado . alternado) (Caja caja)
+{C}  = alternado (alternado (Caja caja))
+{AC  = alternado (Caja (cajaAlternada caja))
+{AC  = Caja (cajaAlternada (cajaAlternada caja))
+{C}  = Caja ((cajaAlternada . cajaAlternada) caja)
+{L1} = Caja (id caja)
+{I}  = Caja caja
+{I}  = id (Caja caja)
+
+-> {L2} (alternado . alternado) (Caja caja) = id (Caja caja)
+
+---
+
+       (alternado . alternado) (Serie ci cf)
+{C}  = alternado (alternado (Serie ci cf))
+{AS  = alternado (Serie (alternado ci) (alternado cf))
+{AS  = Serie (alternado (alternado ci)) (alternado (alternado cf))
+{C}  = Serie ((alternado . alternado) ci) ((alternado . alternado) cf)
+{HI} = Serie (id ci) (id cf)
+{I}  = Serie ci cf
+{I}  = id (Serie ci cf)
+
+-> {L3} (alternado . alternado) (Serie ci cf) = id (Serie ci cf)
+
+---
+
+           (alternado . alternado) (Paralelo ce ci cd cs)
+{C}      = alternado (alternado (Paralelo ce ci cd cs))
+{AP}     = alternado (Paralelo (cajaAlternada ce) (alternado ci) (alternado cd) (cajaAlternada cs))
+{AP}     = Paralelo (cajaAlternada (cajaAlternada ce)) (alternado (alternado ci)) (alternado (alternado cd)) (cajaAlternada (cajaAlternada cs))
+{C}      = Paralelo ((cajaAlternada . cajaAlternada) ce) ((alternado . alternado) ci) ((alternado . alternado) cd) ((cajaAlternada . cajaAlternada) cs)
+{L1}     = Paralelo (id ce) ((alternado . alternado) ci) ((alternado . alternado) cd) (id cs)
+{L2, L3} = Paralelo (id ce) (id ci) (id cd) (id cs)
+{I}      = Paralelo ce ci cd cs
+{I}      = id (Paralelo ce ci cd cs)
+
+-> {L4} (alternado . alternado) (Paralelo ce ci cd cs) = id (Paralelo ce ci cd cs)
+
+---
+
+Con lemmas 1-4, podemos ver que por todos casos, (alternado . alternado) = id
 
 --}
