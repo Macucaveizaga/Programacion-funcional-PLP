@@ -1,5 +1,6 @@
 import TP1
 import Test.HUnit
+import TP1 (resistenciaCircuito, on, subCircuitoMásResistente)
 
 -- TESTS
 
@@ -141,6 +142,29 @@ testsTienenLaMismaEstructura =
         ~?= True
     ]
 
+testResistenciaCustomFunciona :: Test
+testResistenciaCustomFunciona = 
+  TestList
+  [ "Caja tiene el valor correcto"
+    ~:  [resistenciaCircuito cajaOn, resistenciaCircuito cajaOff, resistenciaCircuito cajaNada]
+    ~?= [1.0, 2.0, 10.0]
+  ,"Serie basica tiene la resistencia esperada"
+    ~: resistenciaCircuito (Serie cajaOn cajaNada)
+    ~?= 19.6
+  ,"Serie basica puede tener resistencia negativa"
+    ~: resistenciaCircuito (Serie cajaNada cajaOn)
+    ~?= -2.0
+  ,"Paralelo prendido da cero"
+    ~: resistenciaCircuito (Paralelo on cajaOn cajaOn on)
+    ~?= 0.0
+  ,"Paralelo random da el valor correcto"
+    ~: resistenciaCircuito (Paralelo Nada cajaOn cajaOff on)
+    ~?= 9.5
+  ,"Paralelo random espejado da valor distinto"
+    ~: resistenciaCircuito (Paralelo on cajaOff cajaOn Nada)
+    ~?= -25.5
+  ]
+
 testsSubCircuitoMásResistente :: Test
 testsSubCircuitoMásResistente =
   TestList -- TODO: AGREGAR
@@ -156,6 +180,18 @@ testsSubCircuitoMásResistente =
       "Serie donde gana la serie"
         ~: subCircuitoMásResistente (Serie cajaOff cajaNada)
         ~?= Serie cajaOff cajaNada
+      ,"Paralelo donde gana el paralelo"
+        ~: subCircuitoMásResistente (Paralelo Nada cajaNada cajaNada on)
+        ~?= Paralelo Nada cajaNada cajaNada on
+      ,"Paralelo donde gana la izquierda"
+        ~: subCircuitoMásResistente (Paralelo on cajaNada cajaOff Nada)
+        ~?= cajaNada
+      ,"Paralelo donde gana la derecha"
+        ~: subCircuitoMásResistente (Paralelo on cajaOff cajaNada Nada)
+        ~?= cajaNada
+      ,"Ejemplo de inicio funciona correctamente"
+        ~: subCircuitoMásResistente circuitoEjemplo --me tomo 30 minutos y lo calcule mal (?)
+        ~?= Paralelo off cajaNada cajaOn on
     ]
 
 tests :: Test
@@ -167,6 +203,7 @@ tests =
       TestLabel "cajasDeCircuito" testsCajasDeCircuito,
       TestLabel "esCircuitoProlijo" testsEsCircuitoProlijo,
       -- TestLabel "circuitoEmprolijado" testsCircuitoEmprolijado,
+      TestLabel "ResistenciaCustomFunciona" testResistenciaCustomFunciona,
       TestLabel "tienenLaMismaEstructura" testsTienenLaMismaEstructura,
       TestLabel "subCircuitoMásResistente" testsSubCircuitoMásResistente
     ]

@@ -164,14 +164,15 @@ tienenLaMismaEstructura c1 c2 = mapEstructura c1 == mapEstructura c2
 
 -- 10: subCircuitoMásResistente
 
-resistenciaCircuito :: Circuito -> Float
+--función custom propia, auxiliar para punto 10
+resistenciaCircuito :: Circuito -> Float 
 resistenciaCircuito c = case c of
   Caja c -> case c of
     Bombilla True -> 1.0
     Bombilla False -> 2.0
     Nada -> 10.0
   Serie a b -> -0.4 * rec a + 2 * rec b
-  Paralelo c1 ci cd c2 -> 1.5 * rec ci + 0.5 * rec cd
+  Paralelo c1 ci cd c2 -> 1.5 * rec ci + 0.5 * rec cd  + rec (Caja c1) - 3 *  rec (Caja c2) --las lamparas, a pesar de no ser circuitos, afectan la resistencia del paralelo.
   where
     rec = resistenciaCircuito
 
