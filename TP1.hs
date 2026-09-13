@@ -185,6 +185,8 @@ subCircuitoMásResistente =
 
 {-- 11: Demostrar: alternado . alternado = id
 
+-Enunciado:
+
 alternado :: Circuito -> Circuito
 {AC} alternado (Caja caja) = Caja (cajaAlternada caja)
 {AS} alternado (Serie ci cf) = Serie (alternado ci) (alternado cf)
@@ -204,20 +206,32 @@ not :: Bool -> Bool
 {NT} not True = False
 {NF} not False = True
 
----
+-Auxiliares:
+
+QVQ ∀ b :: Bool, not (not b) = b {NB}
+Por lema de generación, tenemos que un booleano puede ser True o False
+
+Caso b = True:
 
        not (not True)
 {NT} = not False
 {NF} = True
 
+Caso b = False:
+
        not (not False)
 {NT} = not True
 {NF} = False
 
-Por ambos casos podemos ver qué
--> {NB} not (not booleano) = booleano
+Por ambos casos podemos ver que ∀ b :: Bool
+-> not (not b) = b {NB}
 
 ---
+QVQ cajaAlternada . cajaAlternada = id {CAID}
+Por extensionalidad:
+QVQ ∀ caja :: Caja, (cajaAlternada . cajaAlternada) caja = id caja
+
+Caso caja = Nada:
 
         (cajaAlternada . cajaAlternada) Nada
 {C}   = cajaAlternada (cajaAlternada Nada)
@@ -225,65 +239,73 @@ Por ambos casos podemos ver qué
 {CAN} = Nada
 {I}   = id Nada
 
--> {N} (cajaAlternada . cajaAlternada) Nada = id Nada
+-> (cajaAlternada . cajaAlternada) Nada = id Nada {CAIDN}
 
+Caso caja = Bombilla b, para cualquier b :: Bool:
+
+        (cajaAlternada . cajaAlternada) (Bombilla b)
+{C}   = cajaAlternada (cajaAlternada (Bombilla b))
+{CAB} = cajaAlternada (Bombilla (not b))
+{CAB} = Bombilla (not (not b))
+{NB}  = Bombilla b
+{I}   = id (Bombilla b)
+
+-> (cajaAlternada . cajaAlternada) (Bombilla b) = id (Bombilla b) {CAIDB}
+
+
+Por ambos casos {CAIDN} y {CAIDB}, vemos que (cajaAlternada . cajaAlternada) = id {CAID}
 ---
+-Demostración:
 
-        (cajaAlternada . cajaAlternada) (Bombilla booleano)
-{C}   = cajaAlternada (cajaAlternada (Bombilla booleano))
-{CAB} = cajaAlternada (Bombilla (not booleano))
-{CAB} = Bombilla (not (not booleano))
-{NB}  = Bombilla booleano
-{I}   = id (Bombilla booleano)
+QVQ alternado . alternado = id
+Por extensionalidad, es equivalente a demostrar que: ∀ c :: Circuito, alternado . alternado c = id c
+Vamos a hacer inducción estructural sobre c:
+QVQ
+P(c) = alternada . alternada c = id c
 
-{L1} -> (cajaAlternada . cajaAlternada) (Bombilla booleano) = id (Bombilla booleano)
-
----
-
-Por ambos casos donde Caja es Nada o un Bombilla, (cajaAlternada . cajaAlternada) = id
-
----
+Caso base: c = Caja caja, para cualquier caja::Caja
 
        (alternado . alternado) (Caja caja)
-{C}  = alternado (alternado (Caja caja))
-{AC} = alternado (Caja (cajaAlternada caja))
-{AC} = Caja (cajaAlternada (cajaAlternada caja))
-{C}  = Caja ((cajaAlternada . cajaAlternada) caja)
-{L1} = Caja (id caja)
-{I}  = Caja caja
-{I}  = id (Caja caja)
+{C}    = alternado (alternado (Caja caja))
+{AC}   = alternado (Caja (cajaAlternada caja))
+{AC}   = Caja (cajaAlternada (cajaAlternada caja))
+{C}    = Caja ((cajaAlternada . cajaAlternada) caja)
+{CAID} = Caja (id caja)
+{I}    = Caja caja
+{I}    = id (Caja caja)
 
-{L2} -> (alternado . alternado) (Caja caja) = id (Caja caja)
+-> (alternado . alternado) (Caja caja) = id (Caja caja)
 
----
+Caso inductivo: c = Serie ci cf
+∀ ci,cf :: Circuito. P(ci), P(cf) {HI-S} => P(Serie ci cf)
 
            (alternado . alternado) (Serie ci cf)
 {C}      = alternado (alternado (Serie ci cf))
 {AS}     = alternado (Serie (alternado ci) (alternado cf))
 {AS}     = Serie (alternado (alternado ci)) (alternado (alternado cf))
 {C}      = Serie ((alternado . alternado) ci) ((alternado . alternado) cf)
-{L1, L2} = Serie (id ci) (id cf)
+{HI-S}x2 = Serie (id ci) (id cf)
 {I}      = Serie ci cf
 {I}      = id (Serie ci cf)
 
-{L3} -> (alternado . alternado) (Serie ci cf) = id (Serie ci cf)
+-> (alternado . alternado) (Serie ci cf) = id (Serie ci cf)
 
----
+Caso inductivo: c = Paralelo ce ci cd cs
+∀ ce,cs :: Caja, ∀ ci,cd :: Circuito. P(ci), P(cd) {HI-P} => P(Paralelo ce ci cd cs)
 
            (alternado . alternado) (Paralelo ce ci cd cs)
 {C}      = alternado (alternado (Paralelo ce ci cd cs))
 {AP}     = alternado (Paralelo (cajaAlternada ce) (alternado ci) (alternado cd) (cajaAlternada cs))
 {AP}     = Paralelo (cajaAlternada (cajaAlternada ce)) (alternado (alternado ci)) (alternado (alternado cd)) (cajaAlternada (cajaAlternada cs))
 {C}      = Paralelo ((cajaAlternada . cajaAlternada) ce) ((alternado . alternado) ci) ((alternado . alternado) cd) ((cajaAlternada . cajaAlternada) cs)
-{L1}     = Paralelo (id ce) ((alternado . alternado) ci) ((alternado . alternado) cd) (id cs)
-{L2, L3} = Paralelo (id ce) (id ci) (id cd) (id cs)
-{I}      = Paralelo ce ci cd cs
+{CAID}x2 = Paralelo (id ce) ((alternado . alternado) ci) ((alternado . alternado) cd) (id cs)
+{HI-P}x2 = Paralelo (id ce) (id ci) (id cd) (id cs)
+{I}x4    = Paralelo ce ci cd cs
 {I}      = id (Paralelo ce ci cd cs)
 
-{L4} -> (alternado . alternado) (Paralelo ce ci cd cs) = id (Paralelo ce ci cd cs)
+-> (alternado . alternado) (Paralelo ce ci cd cs) = id (Paralelo ce ci cd cs)
 
----
 
-Con lemmas 1-4, podemos ver que por todos casos, (alternado . alternado) = id
+Habiendo probado el caso base y los dos casos inductivos (y por extensionalidad), demostramos que (alternado . alternado) = id
 
 --}
