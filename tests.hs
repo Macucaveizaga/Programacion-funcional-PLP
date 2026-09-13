@@ -1,6 +1,6 @@
 import TP1
+import TP1 (on, resistenciaCircuito, subCircuitoMásResistente)
 import Test.HUnit
-import TP1 (resistenciaCircuito, on, subCircuitoMásResistente)
 
 -- TESTS
 
@@ -49,7 +49,13 @@ testsHayCaminoIluminado =
         ~?= False,
       "ejemplo inicial modificado tiene camino iluminado"
         ~: hayCaminoIluminado (Serie cajaOn (Paralelo on (Paralelo Nada cajaOff cajaOn Nada) (Paralelo on cajaOn cajaNada on) on))
-        ~?= True
+        ~?= True,
+      "Ejemplo multiples Series"
+        ~: hayCaminoIluminado (Serie cajaOn (Serie cajaOn (Serie cajaOn (Serie cajaOn cajaOn))))
+        ~?= True,
+      "Ejemplo multiples Series"
+        ~: hayCaminoIluminado (Serie cajaOn (Serie cajaOn (Serie cajaOn (Serie cajaOn cajaOff))))
+        ~?= False
     ]
 
 testsCantidadPrendidas :: Test
@@ -63,7 +69,13 @@ testsCantidadPrendidas =
         ~?= 0,
       "Cantidad prendida en ejemplo es 6"
         ~: cantidadPrendidas circuitoEjemplo
-        ~?= 6
+        ~?= 6,
+      "Circuito de 4 series"
+        ~: cantidadPrendidas (Serie (Serie cajaOn (Serie (Paralelo on cajaOn (Serie cajaOn cajaOn) Nada) cajaNada)) cajaOn)
+        ~?= 6,
+      "Paralelos anidados"
+        ~: cantidadPrendidas (Paralelo on (Paralelo on (Serie cajaOn cajaNada) cajaOff on) (Paralelo on cajaOff (Serie cajaNada cajaOn) off) on)
+        ~?= 7
     ]
 
 testsCajasDeCircuito :: Test
@@ -80,7 +92,10 @@ testsCajasDeCircuito =
         ~?= [off, Nada, on, Nada],
       "La lista de cajas de circuito ejemplo es correcta"
         ~: cajasDeCircuito circuitoEjemplo
-        ~?= [on, off, Nada, on, on, Nada, on, off, Nada, on, on]
+        ~?= [on, off, Nada, on, on, Nada, on, off, Nada, on, on],
+      "Cajas de paralelo anidado"
+        ~: cajasDeCircuito (Paralelo on (Paralelo on (Serie cajaOn cajaNada) cajaOff on) (Paralelo on cajaOff (Serie cajaNada cajaOn) off) on)
+        ~?= [on, on, on, Nada, off, on, on, off, Nada, on, off, on]
     ]
 
 testsEsCircuitoProlijo :: Test
@@ -143,27 +158,27 @@ testsTienenLaMismaEstructura =
     ]
 
 testResistenciaCustomFunciona :: Test
-testResistenciaCustomFunciona = 
+testResistenciaCustomFunciona =
   TestList
-  [ "Caja tiene el valor correcto"
-    ~:  [resistenciaCircuito cajaOn, resistenciaCircuito cajaOff, resistenciaCircuito cajaNada]
-    ~?= [1.0, 2.0, 10.0]
-  ,"Serie basica tiene la resistencia esperada"
-    ~: resistenciaCircuito (Serie cajaOn cajaNada)
-    ~?= 19.6
-  ,"Serie basica puede tener resistencia negativa"
-    ~: resistenciaCircuito (Serie cajaNada cajaOn)
-    ~?= -2.0
-  ,"Paralelo prendido da cero"
-    ~: resistenciaCircuito (Paralelo on cajaOn cajaOn on)
-    ~?= 0.0
-  ,"Paralelo random da el valor correcto"
-    ~: resistenciaCircuito (Paralelo Nada cajaOn cajaOff on)
-    ~?= 9.5
-  ,"Paralelo random espejado da valor distinto"
-    ~: resistenciaCircuito (Paralelo on cajaOff cajaOn Nada)
-    ~?= -25.5
-  ]
+    [ "Caja tiene el valor correcto"
+        ~: [resistenciaCircuito cajaOn, resistenciaCircuito cajaOff, resistenciaCircuito cajaNada]
+        ~?= [1.0, 2.0, 10.0],
+      "Serie basica tiene la resistencia esperada"
+        ~: resistenciaCircuito (Serie cajaOn cajaNada)
+        ~?= 19.6,
+      "Serie basica puede tener resistencia negativa"
+        ~: resistenciaCircuito (Serie cajaNada cajaOn)
+        ~?= -2.0,
+      "Paralelo prendido da cero"
+        ~: resistenciaCircuito (Paralelo on cajaOn cajaOn on)
+        ~?= 0.0,
+      "Paralelo random da el valor correcto"
+        ~: resistenciaCircuito (Paralelo Nada cajaOn cajaOff on)
+        ~?= 9.5,
+      "Paralelo random espejado da valor distinto"
+        ~: resistenciaCircuito (Paralelo on cajaOff cajaOn Nada)
+        ~?= -25.5
+    ]
 
 testsSubCircuitoMásResistente :: Test
 testsSubCircuitoMásResistente =
@@ -179,18 +194,18 @@ testsSubCircuitoMásResistente =
         ~?= cajaOff,
       "Serie donde gana la serie"
         ~: subCircuitoMásResistente (Serie cajaOff cajaNada)
-        ~?= Serie cajaOff cajaNada
-      ,"Paralelo donde gana el paralelo"
+        ~?= Serie cajaOff cajaNada,
+      "Paralelo donde gana el paralelo"
         ~: subCircuitoMásResistente (Paralelo Nada cajaNada cajaNada on)
-        ~?= Paralelo Nada cajaNada cajaNada on
-      ,"Paralelo donde gana la izquierda"
+        ~?= Paralelo Nada cajaNada cajaNada on,
+      "Paralelo donde gana la izquierda"
         ~: subCircuitoMásResistente (Paralelo on cajaNada cajaOff Nada)
-        ~?= cajaNada
-      ,"Paralelo donde gana la derecha"
+        ~?= cajaNada,
+      "Paralelo donde gana la derecha"
         ~: subCircuitoMásResistente (Paralelo on cajaOff cajaNada Nada)
-        ~?= cajaNada
-      ,"Ejemplo de inicio funciona correctamente"
-        ~: subCircuitoMásResistente circuitoEjemplo --me tomo 30 minutos y lo calcule mal (?)
+        ~?= cajaNada,
+      "Ejemplo de inicio funciona correctamente"
+        ~: subCircuitoMásResistente circuitoEjemplo -- me tomo 30 minutos y lo calcule mal (?)
         ~?= Paralelo off cajaNada cajaOn on
     ]
 
