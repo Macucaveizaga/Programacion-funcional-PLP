@@ -3,6 +3,9 @@
 
 module TP1 where
 
+import Data.List
+import Data.Ord (comparing)
+
 data Caja = Bombilla Bool | Nada
   deriving (Eq)
 
@@ -86,14 +89,14 @@ recCircuito fCaja fSerie fParalelo circ = case circ of
 
 foldCircuito :: (Caja -> b) -> (b -> b -> b) -> (b -> b -> b -> b -> b) -> Circuito -> b
 foldCircuito fCaja fSerie fParalelo = recCircuito fCaja (\rx ry _ _ -> fSerie rx ry) (\rc1 rx ry rc2 _ _ _ _ -> fParalelo rc1 rx ry rc2)
+
 -- recursivoCir1 recursivoCir2 cri1circ2
---caja1 recCircIzq recCircDer caja2
+-- caja1 recCircIzq recCircDer caja2
 
 -- 3 invertido
 
 invertido :: Circuito -> Circuito
 invertido = recCircuito Caja (\rx ry x y -> Serie ry rx) (\rc1 rx ry rc2 c1 x y c2 -> Paralelo c2 ry rx c1)
-
 
 -- 4: hayCaminoIluminado
 
@@ -105,8 +108,8 @@ hayCaminoIluminado =
         Bombilla False -> False
         Nada -> False
     )
-    (\rx ry -> rx || ry)
-    (\rc1 rx ry rc2 -> rc1 && (rx || ry ) && rc2)
+    (\rx ry -> rx && ry)
+    (\rc1 rx ry rc2 -> rc1 && (rx || ry) && rc2)
 
 -- 5: cantidadPrendidas
 
@@ -130,7 +133,6 @@ cajasDeCircuito =
     (\w x -> w ++ x)
     (\rc1 rx ry rc2 -> rc1 ++ rx ++ ry ++ rc2)
 
-
 -- 7: esCircuitoProlijo
 
 esCircuitoProlijo :: Circuito -> Bool
@@ -143,40 +145,42 @@ esCircuitoProlijo =
     )
     (\rc1 rx ry rc2 c1 x y c2 -> rx && ry)
 
-
-
-circuitoemplolijable :: Circuito
-circuitoemplolijable = Serie (Serie cajaOn cajaOff) (Serie cajaOff cajaOn)
-
-
-
 -- 8: circuitoEmprolijado
+circuitoRaro :: Circuito
+circuitoRaro = Serie (Serie cajaOn cajaOff) cajaNada
 
 circuitoEmprolijado :: a
 circuitoEmprolijado = undefined -- ESTE EJERCICIO NO SE HACE
 
 -- 9: tienenLaMismaEstructura
 mapEstructura :: Circuito -> [String]
-mapEstructura = foldCircuito (\x -> ["Caja"]) (\x y -> x ++ y) (\w x y z -> ["Paralelo"] ++ x ++ y)
+mapEstructura = foldCircuito (\x -> ["Caja"]) (\x y -> x ++ ["Serie"] ++ y) (\w x y z -> ["Paralelo"] ++ x ++ y)
 
 tienenLaMismaEstructura :: Circuito -> Circuito -> Bool
 tienenLaMismaEstructura c1 c2 = mapEstructura c1 == mapEstructura c2
 
-
--- 
-
+-- tienenLaMismaEstructura2 :: Circuito -> Circuito -> Bool
+-- tienenLaMismaEstructura2 c1 c2 = foldCircuito
 
 -- 10: subCircuitoMásResistente
 
 resistenciaCircuito :: Circuito -> Float
-resistenciaCircuito _ = 100 -- Temporario, dado
+resistenciaCircuito c = case c of
+  Caja c -> case c of
+    Bombilla True -> 1.0
+    Bombilla False -> 2.0
+    Nada -> 10.0
+  Serie a b -> -0.4 * rec a + 2 * rec b
+  Paralelo c1 ci cd c2 -> 1.5 * rec ci + 0.5 * rec cd
+  where
+    rec = resistenciaCircuito
 
 subCircuitoMásResistente :: Circuito -> Circuito
 subCircuitoMásResistente =
-  foldCircuito
-    Caja
-    Serie
-    (\_ a b _ -> if resistenciaCircuito a > resistenciaCircuito b then a else b)
+  recCircuito
+    (\x -> Caja x)
+    (\recx recy x y -> maximumBy (comparing resistenciaCircuito) [Serie x y, recx, recy])
+    (\rc1 rx ry rc2 c1 x y c2 -> maximumBy (comparing resistenciaCircuito) [Paralelo c1 x y c2, rx, ry])
 
 {-- 11: Demostrar: alternado . alternado = id
 
