@@ -77,49 +77,50 @@ cajaNada = Caja Nada
 
 -- 1: recCircuito
 
-recCircuito :: (Caja -> b) -> (b -> b -> Circuito -> Circuito -> b) -> (b -> b -> b -> b -> Caja -> Circuito -> Circuito -> Caja -> b) -> Circuito -> b
+recCircuito :: (Caja -> b) -> (b -> b -> Circuito -> Circuito -> b) -> (b -> b -> Caja -> Circuito -> Circuito -> Caja -> b) -> Circuito -> b
 recCircuito fCaja fSerie fParalelo circ = case circ of
   Caja c -> fCaja c
   Serie a b -> fSerie (rec a) (rec b) a b
-  Paralelo a c1 c2 b -> fParalelo (fCaja a) (rec c1) (rec c2) (fCaja b) a c1 c2 b
+  Paralelo a c1 c2 b -> fParalelo (rec c1) (rec c2) a c1 c2 b -- hay que sacar las luces de comienzo 
   where
     rec = recCircuito fCaja fSerie fParalelo
 
 -- 2: foldCircuito
 
-foldCircuito :: (Caja -> b) -> (b -> b -> b) -> (b -> b -> b -> b -> b) -> Circuito -> b
-foldCircuito fCaja fSerie fParalelo = recCircuito fCaja (\rx ry _ _ -> fSerie rx ry) (\rc1 rx ry rc2 _ _ _ _ -> fParalelo rc1 rx ry rc2)
+foldCircuito :: (Caja -> b) -> (b -> b -> b) -> (Caja -> b -> b -> Caja -> b) -> Circuito -> b
+foldCircuito fCaja fSerie fParalelo = recCircuito fCaja (\rx ry _ _ -> fSerie rx ry) (\rx ry c_inf _ _  c_sup-> fParalelo c_inf rx ry c_sup)
 
--- 3 invertido
-
+-- 3 invertido  --fold Alcanza modificar.
 invertido :: Circuito -> Circuito
-invertido = recCircuito Caja (\rx ry x y -> Serie ry rx) (\rc1 rx ry rc2 c1 x y c2 -> Paralelo c2 ry rx c1)
+invertido = recCircuito Caja (\rx ry x y -> Serie ry rx) (\ rx ry  c1 x y c2 -> Paralelo c2 ry rx c1)
 
 -- 4: hayCaminoIluminado
 
 hayCaminoIluminado :: Circuito -> Bool
 hayCaminoIluminado =
   foldCircuito
-    ( \c -> case c of
-        Bombilla True -> True
-        Bombilla False -> False
-        Nada -> False
-    )
+    ( cajaIluminada )
     (\rx ry -> rx && ry)
-    (\rc1 rx ry rc2 -> rc1 && (rx || ry) && rc2)
+    (\rc1 rx ry rc2 -> cajaIluminada rc1 && (rx || ry) && cajaIluminada rc2)
+    where 
+      cajaIluminada :: Caja -> Bool
+      cajaIluminada c  =  case c of
+        Bombilla True -> True
+        _ -> False
 
 -- 5: cantidadPrendidas
 
 cantidadPrendidas :: Circuito -> Int
 cantidadPrendidas =
   foldCircuito
-    ( \c -> case c of
-        Bombilla True -> 1
-        Bombilla False -> 0
-        Nada -> 0
-    )
+    ( prendidasEnCaja    )
     (\rx ry -> rx + ry)
-    (\rc1 rx ry rc2 -> rc1 + rx + ry + rc2)
+    (\rc1 rx ry rc2 -> prendidasEnCaja rc1 + rx + ry + prendidasEnCaja rc2)
+    where
+      prendidasEnCaja :: Caja -> Int
+      prendidasEnCaja c = case c of
+        Bombilla True -> 1
+        _ -> 0
 
 -- 6: cajasDeCircuito
 
@@ -128,7 +129,7 @@ cajasDeCircuito =
   foldCircuito
     (\x -> [x])
     (\w x -> w ++ x)
-    (\rc1 rx ry rc2 -> rc1 ++ rx ++ ry ++ rc2)
+    (\c1 rx ry c2 -> [c1] ++ rx ++ ry ++ [c2])
 
 -- 7: esCircuitoProlijo
 
@@ -138,19 +139,20 @@ esCircuitoProlijo =
     (\x -> True)
     ( \rx ry x y -> case y of
         Serie a b -> False
-        _ -> True && rx
+        _ -> rx && ry -- acá falta chequear que lo de la derecha sea prolijo (onda, hay un paralelo )
     )
-    (\rc1 rx ry rc2 c1 x y c2 -> rx && ry)
+    (\rx ry _ _ _ _ -> rx && ry)
 
 -- 8: circuitoEmprolijado
 circuitoEmprolijado :: a
 circuitoEmprolijado = undefined -- ESTE EJERCICIO NO SE HACE
 
--- 9: tienenLaMismaEstructura
+-- 9: tienenLaMismaEstructura --rehacer! zip lista.
 mapEstructura :: Circuito -> [String]
 mapEstructura = foldCircuito (\x -> ["Caja"]) (\x y -> x ++ ["Serie"] ++ y) (\w x y z -> ["Paralelo"] ++ x ++ y)
 
-tienenLaMismaEstructura :: Circuito -> Circuito -> Bool
+tienenLaMismaEstructura :: Circuito -> Circuito -> Bool --take o zip de listas.
+-- EN cada paso, nuestra función circuito -> Bool tiene que preguntarse si es igual a la que me pasan. 
 tienenLaMismaEstructura c1 c2 = mapEstructura c1 == mapEstructura c2
 
 -- 10: subCircuitoMásResistente
@@ -172,7 +174,7 @@ subCircuitoMásResistente =
   recCircuito
     (\x -> Caja x)
     (\recx recy x y -> maximumBy (comparing resistenciaCircuito) [Serie x y, recx, recy])
-    (\rc1 rx ry rc2 c1 x y c2 -> maximumBy (comparing resistenciaCircuito) [Paralelo c1 x y c2, rx, ry])
+    (\rx ry c1 x y c2 -> maximumBy (comparing resistenciaCircuito) [Paralelo c1 x y c2, rx, ry])
 
 {-- 11: Demostrar: alternado . alternado = id
 
@@ -222,7 +224,7 @@ QVQ cajaAlternada . cajaAlternada = id {CAID}
 Por extensionalidad:
 QVQ ∀ caja :: Caja, (cajaAlternada . cajaAlternada) caja = id caja
 
-Caso caja = Nada:
+Caso caja = Nada: --usando lema de generación.
 
         (cajaAlternada . cajaAlternada) Nada
 {C}   = cajaAlternada (cajaAlternada Nada)
@@ -232,7 +234,7 @@ Caso caja = Nada:
 
 -> (cajaAlternada . cajaAlternada) Nada = id Nada {CAIDN}
 
-Caso caja = Bombilla b, para cualquier b :: Bool:
+Caso caja = Bombilla b, para cualquier b :: Bool:   --existe b de tipo bool tal que caja = Bombilla b.
 
         (cajaAlternada . cajaAlternada) (Bombilla b)
 {C}   = cajaAlternada (cajaAlternada (Bombilla b))
@@ -248,10 +250,10 @@ Por ambos casos {CAIDN} y {CAIDB}, vemos que (cajaAlternada . cajaAlternada) = i
 -Demostración:
 
 QVQ alternado . alternado = id
-Por extensionalidad, es equivalente a demostrar que: ∀ c :: Circuito, alternado . alternado c = id c
+Por extensionalidad, es equivalente a demostrar que: ∀ c :: Circuito, (alternado . alternado) c = id c
 Vamos a hacer inducción estructural sobre c:
 QVQ
-P(c) = alternada . alternada c = id c
+P(c) = (alternada . alternada) c = id c
 
 Caso base: c = Caja caja, para cualquier caja::Caja
 

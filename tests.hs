@@ -143,11 +143,11 @@ testsCircuitoEmprolijado =
 
 testsTienenLaMismaEstructura :: Test
 testsTienenLaMismaEstructura =
-  TestList -- TODO: AGREGAR
+  TestList 
     [ "rompiendo 1"
-        ~: tienenLaMismaEstructura (Serie cajaOn (Serie (Paralelo Nada cajaNada cajaNada Nada) (Paralelo Nada cajaNada cajaNada Nada))) (Serie cajaOn (Serie (Paralelo Nada cajaNada cajaNada Nada) (Paralelo Nada cajaNada cajaNada Nada)))
+        ~: tienenLaMismaEstructura (Serie cajaOn (Serie (Paralelo Nada cajaNada cajaNada Nada) (Paralelo Nada cajaNada cajaNada Nada))) (Serie cajaOn (Serie (Paralelo Nada cajaNada cajaOn Nada) (Paralelo Nada cajaNada cajaOff Nada)))
         ~?= True,
-      "Mepa que rompe: 4 series es un paralelo"
+      "estructuras distintas de 4 elementos tienen distinta estructura"
         ~: tienenLaMismaEstructura
           (Serie (Serie (Serie cajaOn cajaOn) cajaOn) cajaOn)
           (Paralelo on cajaOn cajaOn on)
@@ -162,7 +162,7 @@ testResistenciaCustomFunciona =
   TestList
     [ "Caja tiene el valor correcto"
         ~: [resistenciaCircuito cajaOn, resistenciaCircuito cajaOff, resistenciaCircuito cajaNada]
-        ~?= [1.0, 2.0, 10.0],
+        ~?= [1.0, 2.0, 10.0], 
       "Serie basica tiene la resistencia esperada"
         ~: resistenciaCircuito (Serie cajaOn cajaNada)
         ~?= 19.6,
