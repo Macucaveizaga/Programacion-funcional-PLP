@@ -90,9 +90,6 @@ recCircuito fCaja fSerie fParalelo circ = case circ of
 foldCircuito :: (Caja -> b) -> (b -> b -> b) -> (b -> b -> b -> b -> b) -> Circuito -> b
 foldCircuito fCaja fSerie fParalelo = recCircuito fCaja (\rx ry _ _ -> fSerie rx ry) (\rc1 rx ry rc2 _ _ _ _ -> fParalelo rc1 rx ry rc2)
 
--- recursivoCir1 recursivoCir2 cri1circ2
--- caja1 recCircIzq recCircDer caja2
-
 -- 3 invertido
 
 invertido :: Circuito -> Circuito
@@ -146,9 +143,6 @@ esCircuitoProlijo =
     (\rc1 rx ry rc2 c1 x y c2 -> rx && ry)
 
 -- 8: circuitoEmprolijado
-circuitoRaro :: Circuito
-circuitoRaro = Serie (Serie cajaOn cajaOff) cajaNada
-
 circuitoEmprolijado :: a
 circuitoEmprolijado = undefined -- ESTE EJERCICIO NO SE HACE
 
@@ -159,20 +153,17 @@ mapEstructura = foldCircuito (\x -> ["Caja"]) (\x y -> x ++ ["Serie"] ++ y) (\w 
 tienenLaMismaEstructura :: Circuito -> Circuito -> Bool
 tienenLaMismaEstructura c1 c2 = mapEstructura c1 == mapEstructura c2
 
--- tienenLaMismaEstructura2 :: Circuito -> Circuito -> Bool
--- tienenLaMismaEstructura2 c1 c2 = foldCircuito
-
 -- 10: subCircuitoMásResistente
 
---función custom propia, auxiliar para punto 10
-resistenciaCircuito :: Circuito -> Float 
+-- función custom propia, auxiliar para punto 10
+resistenciaCircuito :: Circuito -> Float
 resistenciaCircuito c = case c of
   Caja c -> case c of
     Bombilla True -> 1.0
     Bombilla False -> 2.0
     Nada -> 10.0
   Serie a b -> -0.4 * rec a + 2 * rec b
-  Paralelo c1 ci cd c2 -> 1.5 * rec ci + 0.5 * rec cd  + rec (Caja c1) - 3 *  rec (Caja c2) --las lamparas, a pesar de no ser circuitos, afectan la resistencia del paralelo.
+  Paralelo c1 ci cd c2 -> 1.5 * rec ci + 0.5 * rec cd + rec (Caja c1) - 3 * rec (Caja c2) -- las lamparas, a pesar de no ser circuitos, afectan la resistencia del paralelo.
   where
     rec = resistenciaCircuito
 
@@ -252,7 +243,6 @@ Caso caja = Bombilla b, para cualquier b :: Bool:
 
 -> (cajaAlternada . cajaAlternada) (Bombilla b) = id (Bombilla b) {CAIDB}
 
-
 Por ambos casos {CAIDN} y {CAIDB}, vemos que (cajaAlternada . cajaAlternada) = id {CAID}
 ---
 -Demostración:
@@ -304,7 +294,6 @@ Caso inductivo: c = Paralelo ce ci cd cs
 {I}      = id (Paralelo ce ci cd cs)
 
 -> (alternado . alternado) (Paralelo ce ci cd cs) = id (Paralelo ce ci cd cs)
-
 
 Habiendo probado el caso base y los dos casos inductivos (y por extensionalidad), demostramos que (alternado . alternado) = id
 
